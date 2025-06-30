@@ -1,0 +1,31 @@
+{
+  "id": "scaffold-frontend",
+  "story_id": "website-builder",
+  "title": "Scaffold Frontend",
+  "description": "Create the basic structure and components for the website",
+  "instructions": "Generate a clean, modern website structure using React and TypeScript",
+  "prompt_template": "generate-ui",
+  "state": {
+    "components_created": false,
+    "routing_setup": false
+  },
+  "expected_outcome": "Frontend structure created with main components and routing",
+  "steps": [
+    {
+      "id": "create-app-structure",
+      "order_index": 1,
+      "prompt": "Create the main App component with routing setup",
+      "input_request": "Specify the main pages/routes needed",
+      "state_update_logic": "{\"components_created\": true}",
+      "outcome_check": "App component exists and renders correctly"
+    },
+    {
+      "id": "create-components",
+      "order_index": 2,
+      "prompt": "Create reusable UI components (Header, Footer, etc.)",
+      "input_request": "List of components needed",
+      "state_update_logic": "{\"routing_setup\": true}",
+      "outcome_check": "All basic components created and importable"
+    }
+  ]
+}

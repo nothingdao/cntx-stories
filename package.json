@@ -1,0 +1,47 @@
+{
+  "name": "cntx-stories",
+  "version": "1.0.0",
+  "description": "Structured AI agent workflow framework with Stories, Activities, and Steps",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && npm run build:web",
+    "build:web": "cd web && npm run build",
+    "dev": "tsx watch src/cli.ts",
+    "start": "node dist/cli.js",
+    "agent": "tsx src/cli.ts",
+    "ui": "tsx src/server.ts",
+    "install:all": "npm install && cd web && npm install"
+  },
+  "keywords": ["AI", "agent", "workflow", "automation", "cntx", "stories", "cli"],
+  "author": "nothingdao",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nothingdao/cntx-stories.git"
+  },
+  "homepage": "https://github.com/nothingdao/cntx-stories",
+  "bin": {
+    "cntx-stories": "./dist/cli.js",
+    "stories": "./dist/cli.js",
+    "strs": "./dist/cli.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.2.2",
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "ws": "^8.14.2",
+    "open": "^9.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.3.3",
+    "tsx": "^4.6.2"
+  }
+}

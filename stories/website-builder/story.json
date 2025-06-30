@@ -1,0 +1,23 @@
+{
+  "id": "website-builder",
+  "title": "Website Builder",
+  "description": "Build a complete website with frontend, styling, and testing",
+  "initial_state": {
+    "project_name": "",
+    "framework": "react",
+    "styling": "tailwind",
+    "testing": true
+  },
+  "expected_outcomes": {
+    "frontend_created": true,
+    "styles_applied": true,
+    "tests_written": true,
+    "build_successful": true
+  },
+  "completion_criteria": "Website is fully functional with passing tests and successful build",
+  "activities": [
+    "scaffold-frontend",
+    "apply-styles", 
+    "write-tests"
+  ]
+}

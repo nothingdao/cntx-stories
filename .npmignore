@@ -1,0 +1,39 @@
+# Source files - only include built files
+src/
+web/src/
+web/node_modules/
+tsconfig.json
+web/tsconfig.json
+web/tsconfig.node.json
+
+# Development files
+*.md
+!README.md
+demo.md
+agent-instructions.md
+agent-integration-guide.md
+example-real-agent-story.md
+
+# Development dependencies and configs
+web/vite.config.ts
+web/tailwind.config.js
+web/postcss.config.js
+
+# User data
+custom-agents.json
+stories.config.json
+config.json
+*.db
+*.sqlite
+*.sqlite3
+
+# Stories folder (users should create their own)
+stories/
+
+# Logs and temp files
+*.log
+tmp/
+temp/
+
+# OS files
+.DS_Store
