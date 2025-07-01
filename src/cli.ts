@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env node
 
 import { Command } from 'commander'
 import chalk from 'chalk'
@@ -107,13 +107,15 @@ async function runInteractiveSetup(): Promise<void> {
 
     console.log(chalk.green('\n✅ Configuration saved!'))
     
-  } catch (error) {
-    if (error.message !== 'readline was closed') {
+  } catch (error: any) {
+    if (error?.message !== 'readline was closed') {
       console.error(chalk.red('Setup interrupted:', error))
     }
   } finally {
-    if (!rl.closed) {
+    try {
       rl.close()
+    } catch {
+      // Already closed
     }
   }
 }

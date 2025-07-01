@@ -30,15 +30,15 @@ export function StoriesPage() {
     }
   }
 
-  const handleRunStory = async (storyId: string) => {
-    try {
-      await api.runStory(storyId)
-      // TODO: Show success message or redirect to execution view
-    } catch (err) {
-      console.error('Failed to run story:', err)
-      // TODO: Show error message
-    }
-  }
+  // const handleRunStory = async (storyId: string) => {
+  //   try {
+  //     await api.runStory(storyId)
+  //     // TODO: Show success message or redirect to execution view
+  //   } catch (err) {
+  //     console.error('Failed to run story:', err)
+  //     // TODO: Show error message
+  //   }
+  // }
 
   function openDialog(type: string, story?: Story) {
     if (type === 'new-story') {
