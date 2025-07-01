@@ -6,10 +6,117 @@ import { StoriesDatabase } from './database.js'
 import { StoryRunner } from './storyRunner.js'
 import { ConfigManager } from './config.js'
 import { AgentExecutor, agentProviders, AgentManager } from './agentProviders.js'
+import readline from 'readline'
 
 const program = new Command()
 const db = new StoriesDatabase()
 const runner = new StoryRunner(db)
+
+// Interactive setup function
+async function runInteractiveSetup(): Promise<void> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  })
+
+  const ask = (question: string): Promise<string> => {
+    return new Promise((resolve) => {
+      rl.question(question, (answer) => {
+        resolve(answer.trim())
+      })
+    })
+  }
+
+  const config = new ConfigManager()
+
+  try {
+    console.log(chalk.magenta('\n🎉 Welcome to cntx-stories!'))
+    console.log(chalk.cyan('Let\'s get you set up with a personalized configuration.\n'))
+
+    // Database setup
+    console.log(chalk.yellow('📊 Database Setup'))
+    console.log('1. SQLite (local file - recommended for getting started)')
+    console.log('2. PostgreSQL (Neon, Supabase, or your own server)')
+    console.log('3. MySQL (your own server)')
+    
+    const dbChoice = await ask('\nChoose your database (1-3) [1]: ')
+    
+    if (dbChoice === '2') {
+      console.log(chalk.dim('\nPostgreSQL Examples:'))
+      console.log(chalk.dim('  Neon:     postgres://user:pass@ep-cool.neon.tech/cntx'))
+      console.log(chalk.dim('  Supabase: postgres://postgres:pass@db.project.supabase.co:5432/postgres'))
+      
+      const dbUrl = await ask('Enter your PostgreSQL connection string: ')
+      if (dbUrl) {
+        config.setDatabaseUrl(dbUrl)
+        console.log(chalk.green('✅ PostgreSQL database configured'))
+      }
+    } else if (dbChoice === '3') {
+      const dbUrl = await ask('Enter your MySQL connection string: ')
+      if (dbUrl) {
+        config.setDatabaseUrl(dbUrl)
+        console.log(chalk.green('✅ MySQL database configured'))
+      }
+    } else {
+      console.log(chalk.green('✅ Using SQLite (default)'))
+    }
+
+    // Agent setup
+    console.log(chalk.yellow('\n🤖 AI Agent Setup'))
+    const availableAgents = await AgentExecutor.detectAvailable()
+    
+    if (availableAgents.length === 0) {
+      console.log(chalk.red('❌ No AI agents found installed!'))
+      console.log(chalk.dim('You can install agents later and configure them with:'))
+      console.log(chalk.dim('  stories config agent set <agent-name>'))
+    } else {
+      console.log('Available AI agents:')
+      availableAgents.forEach((name, index) => {
+        console.log(`${index + 1}. ${name} (${agentProviders[name].name})`)
+      })
+      
+      const agentChoice = await ask(`\nChoose your AI agent (1-${availableAgents.length}) [1]: `)
+      const selectedIndex = parseInt(agentChoice) - 1 || 0
+      
+      if (selectedIndex >= 0 && selectedIndex < availableAgents.length) {
+        const selectedAgent = availableAgents[selectedIndex]
+        config.setAgentProvider(selectedAgent)
+        console.log(chalk.green(`✅ ${selectedAgent} configured as your AI agent`))
+      } else {
+        console.log(chalk.green(`✅ ${availableAgents[0]} configured as your AI agent (default)`))
+        config.setAgentProvider(availableAgents[0])
+      }
+    }
+
+    // Execution preferences
+    console.log(chalk.yellow('\n⚙️  Execution Preferences'))
+    
+    const autoConfirm = await ask('Auto-confirm steps without prompting? (y/N) [N]: ')
+    const pauseTime = await ask('Pause between steps in milliseconds [1000]: ')
+    const logLevel = await ask('Log level (minimal/normal/verbose) [normal]: ')
+
+    const currentConfig = config.get()
+    config.set({
+      ...currentConfig,
+      execution: {
+        autoConfirm: autoConfirm.toLowerCase() === 'y' || autoConfirm.toLowerCase() === 'yes',
+        pauseBetweenSteps: parseInt(pauseTime) || 1000,
+        logLevel: (logLevel as any) || 'normal'
+      }
+    })
+
+    console.log(chalk.green('\n✅ Configuration saved!'))
+    
+  } catch (error) {
+    if (error.message !== 'readline was closed') {
+      console.error(chalk.red('Setup interrupted:', error))
+    }
+  } finally {
+    if (!rl.closed) {
+      rl.close()
+    }
+  }
+}
 
 // ASCII art banner
 const banner = `
@@ -124,10 +231,16 @@ program
 
 program
   .command('init')
-  .description('Initialize with example stories')
-  .action(async () => {
+  .description('Initialize with example stories and configure cntx-stories')
+  .option('--no-interactive', 'Skip interactive setup and use defaults')
+  .action(async (options) => {
     try {
-      console.log(chalk.blue('\n🏗️  Initializing with example stories...\n'))
+      // Run interactive setup unless --no-interactive is specified
+      if (options.interactive !== false) {
+        await runInteractiveSetup()
+      }
+
+      console.log(chalk.blue('\n🏗️  Creating example stories...\n'))
 
       const { createExampleStories } = await import('./examples.js')
       createExampleStories(db)
@@ -135,11 +248,15 @@ program
       const { createSimpleTestStory } = await import('./simpleTestStory.js')
       createSimpleTestStory(db)
 
-      console.log(
-        chalk.green('✅ Example stories created! Run "agent list" to see them.')
-      )
+      console.log(chalk.green('\n✅ Setup complete!\n'))
+      
+      console.log(chalk.cyan('🚀 Quick start:'))
+      console.log(chalk.dim('  stories list                    # See your stories'))
+      console.log(chalk.dim('  stories run website-builder     # Try your first workflow'))
+      console.log(chalk.dim('  stories ui                      # Launch web interface'))
+      
     } catch (error) {
-      console.error(chalk.red('Error initializing:'), error)
+      console.error(chalk.red('Error during initialization:'), error)
       process.exit(1)
     }
   })
@@ -376,6 +493,10 @@ program
       console.log(`  Model: ${currentConfig.agent.model || 'default'}`)
       console.log(`  Temperature: ${currentConfig.agent.temperature}`)
 
+      console.log(chalk.cyan('\nDatabase:'))
+      console.log(`  Provider: ${currentConfig.database.provider}`)
+      console.log(`  URL: ${currentConfig.database.url}`)
+
       console.log(chalk.cyan('\nExecution:'))
       console.log(`  Auto-confirm: ${currentConfig.execution.autoConfirm}`)
       console.log(
@@ -422,6 +543,50 @@ program
           )
         )
       }
+    }
+
+    if (section === 'database') {
+      console.log(chalk.blue('\n🗄️  Database Configuration\n'))
+      
+      const currentConfig = config.get()
+      console.log(chalk.cyan('Current Database:'))
+      console.log(`  Provider: ${currentConfig.database.provider}`)
+      console.log(`  URL: ${currentConfig.database.url}`)
+      
+      if (action === 'set' && value) {
+        config.setDatabaseUrl(value)
+        console.log(chalk.green(`✅ Database URL set to: ${value}`))
+        return
+      }
+      
+      if (action === 'setup') {
+        console.log(chalk.yellow('\n🚧 Interactive database setup coming soon!'))
+        console.log(chalk.dim('For now, use: stories config database set <url>'))
+        console.log(chalk.dim('\nExamples:'))
+        console.log(chalk.dim('  SQLite:     stories config database set "sqlite://~/.cntx/database.db"'))
+        console.log(chalk.dim('  Neon:       stories config database set "postgres://user:pass@ep-cool.neon.tech/cntx"'))
+        console.log(chalk.dim('  Supabase:   stories config database set "postgres://postgres:pass@db.project.supabase.co:5432/postgres"'))
+        return
+      }
+      
+      if (action === 'reset') {
+        config.resetDatabase()
+        console.log(chalk.green('✅ Database reset to SQLite default'))
+        return
+      }
+      
+      if (action === 'test') {
+        console.log(chalk.yellow('🚧 Database connection testing coming soon!'))
+        console.log(chalk.dim('Will test connection to: ' + currentConfig.database.url))
+        return
+      }
+      
+      console.log(chalk.blue('\n💡 Database Commands:'))
+      console.log(chalk.dim('  stories config database set <url>     # Set connection string'))
+      console.log(chalk.dim('  stories config database setup         # Interactive setup'))
+      console.log(chalk.dim('  stories config database test          # Test connection'))
+      console.log(chalk.dim('  stories config database reset         # Reset to SQLite'))
+      return
     }
   })
 

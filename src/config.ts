@@ -13,6 +13,15 @@ export interface StoriesConfig {
     autoConfirm: boolean;
     logLevel: 'minimal' | 'normal' | 'verbose';
   };
+  database: {
+    url: string;
+    provider: 'sqlite' | 'postgres' | 'mysql';
+    host?: string;
+    port?: number;
+    database?: string;
+    username?: string;
+    password?: string;
+  };
 }
 
 const defaultConfig: StoriesConfig = {
@@ -25,6 +34,10 @@ const defaultConfig: StoriesConfig = {
     pauseBetweenSteps: 1000, // 1 second between steps
     autoConfirm: true, // Ask before each step
     logLevel: 'normal'
+  },
+  database: {
+    url: 'sqlite://~/.cntx/database.db',
+    provider: 'sqlite'
   }
 };
 
@@ -68,6 +81,50 @@ export class ConfigManager {
   setAgentProvider(provider: string, model?: string): void {
     this.config.agent.provider = provider;
     if (model) this.config.agent.model = model;
+    this.saveConfig();
+  }
+
+  setDatabaseUrl(url: string): void {
+    // Parse URL to determine provider
+    let provider: 'sqlite' | 'postgres' | 'mysql' = 'sqlite';
+    if (url.startsWith('postgres://') || url.startsWith('postgresql://')) {
+      provider = 'postgres';
+    } else if (url.startsWith('mysql://')) {
+      provider = 'mysql';
+    }
+
+    this.config.database = {
+      ...this.config.database,
+      url,
+      provider
+    };
+    this.saveConfig();
+  }
+
+  setDatabaseConnection(host: string, port: number, database: string, username: string, password: string, provider: 'postgres' | 'mysql'): void {
+    const url = `${provider}://${username}:${password}@${host}:${port}/${database}`;
+    
+    this.config.database = {
+      url,
+      provider,
+      host,
+      port,
+      database,
+      username,
+      password
+    };
+    this.saveConfig();
+  }
+
+  getDatabaseUrl(): string {
+    return this.config.database.url;
+  }
+
+  resetDatabase(): void {
+    this.config.database = {
+      url: 'sqlite://~/.cntx/database.db',
+      provider: 'sqlite'
+    };
     this.saveConfig();
   }
 }
