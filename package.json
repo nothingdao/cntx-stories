@@ -1,6 +1,6 @@
 {
   "name": "cntx-stories",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Structured AI agent workflow framework with Stories, Activities, and Steps",
   "main": "dist/index.js",
   "type": "module",
@@ -13,7 +13,15 @@
     "ui": "tsx src/server.ts",
     "install:all": "npm install && cd web && npm install"
   },
-  "keywords": ["AI", "agent", "workflow", "automation", "cntx", "stories", "cli"],
+  "keywords": [
+    "AI",
+    "agent",
+    "workflow",
+    "automation",
+    "cntx",
+    "stories",
+    "cli"
+  ],
   "author": "nothingdao",
   "license": "MIT",
   "repository": {
